@@ -1,0 +1,119 @@
+EEPROM:
+
+Rus:
+Всего центрифуга имеет 9 параметров для настройки. Файл dump_eeprom.hex - это дамп памяти моего контроллера.
+Там выбраны следующие значения:
+
+Addr 0: Процент "линейного" разгона: 97% в моем случае. Т.е, покуда центрифуга НЕ разогналась до 97% от целевой скорости - для разгона будет применяться значение из "PERCRETA_FACTOR_ADDR".
+Addr 1: Значение которое будет добавлено в регистр ШИМ-таймера в середине диапазона оборотов (середина между bottom (200rpm) и top (top это ВСЁ что больше MIDDLE) ). Т.е, насколько сильно будет декрементировано или инрементировано значение этого регистра когда центрифуга разогнана до N оборотов, Default (т.е Middle), Fast(высокие обороты) или Slow(низкие обороты).
+Для каждого диапазона оборотов значение приращения свое, потому что двигатель тормозит и разгоняется не идеально линейно. Эти переменные вам нужно будет подобрать практически, найдя максимально линейную характеристику разгона во всем диапазоне оборотов (от нуля до TOP).
+
+Addr 2, 3: то же самое, что и Addr 1.
+
+Addr4: Значение "коррекции". Оно используется СУГУБО ДЛЯ КОРРЕКЦИИ И РАЗГОНА ПОСЛЕ "линейного разгона" (т.е после 97% от цели(97% ДЛЯ ПРИМЕРА!))!. Первые 3 "Percreta" - используятся когда центрифуга разгоняется до N оборотов (цели) но "обороты сейчас" НИЖЕ 97% ОТ ЦЕЛИ. 
+
+Когда же центрифуга разгонится до 97% ОТ целевых оборотов то в регистр будут подаваться значения из PERCRETA_FACTOR_ADDR. Так-же, если по какой либо причине обороты незначительно (а это "незначительно" определяется значением из Aceptable_RPM_Deviation_Addr) изменятся ПОСЛЕ достижения цели, то коррекция оборотов вверх или вниз будет произведена как раз значением из этой переменной PERCRETA_FACTOR_ADDR. Т.е, это очень "тонкая" регулировка оборотов и очень "тонкий" разгон, и, значение стоит выбирать поменьше.
+
+Addr5: Допустимое отклонение оборотов. Пока отклонение НИЖЕ чем это значение - контрольный блок не будет никак влиять на обороты (ни коррекции ни разгона).
+
+Addr6: Значение для арифметического среднего. Сколько раз суммировать сырые значения тахометра для вычисления среднего колличества оборотов за N секунд. Важный момент - контрольный блок опрашивает тахометр каждую секунду (!). Но значения на дисплее будут меняться каждые N_dr_P * 1 секунда времени. Это так-же распространяется и на предпринятие каких либо действий касательно коррекции оборотов. Т.е, для N_dr_P = 3 значения (ТАХОМЕТР! НЕ ТАЙМЕР!) на дисплее будут обновляться каждые 3 секунды и какие либо действия (т.е, принятие решения об них) касательно коррекции оборотов будут приниматься тоже каждые 3 секунды. Да, очень кривой метод, я знаю. Но с гистерезисом значение N_dr_P = 1 работает прекрасно. Просто мне лень было чистить код и удалять эту функцию. Ставьте N_dr_P = 1 и всё.
+
+Addr7: Начальное значение в регистре ШИМ таймера. 
+
+Addr8: Множитель КОНЦА "средних" оборотов умноженный на фиксированный множитель (50). Допустим, это значение = 70. Т.е 70 * 50 = 3500.
+Значит, обороты ВЫШЕ 3500 будут считаться "высокими", и для них будет применяться значения приращения PERCRETA_FACTOR_INIT2_ADDR.
+Addr9: Множитель КОНЦА "нижних" оборотов умноженный на множитель из Addr8. Там в примере выше было CurvyCutOff = 70. Допустим я хочу чтобы "низкие" обороты КОНЧАЛИСЬ на значении 1400об/мин, значит 1400/70 = 20. Тогда CURVYCUTOFF_MULTIPLIER_LOW_ADDR = 20.
+
+
+//=================================================================//
+Как настроить? Эксперементально. Или попробуйте загрузить мой дамп eeprom.
+В интерактивном режиме при помощи avrdude:
+avrdude -p m8 -c usbasp -t
+Допустим я хочу поменять значение LINEAR_PERCENT_LENGTH_ADDR на 97%
+тогда я пишу write eeprom 0 97
+Важны момент - записываемое значение пишется в десятиричном виде!
+После чего вы можете проверить все ли правильно записалось: read eeprom 0
+0000  61 04 0a 03 02 50 01 aa  3c 14 ff ff ff ff ff ff
+Где 61 = нулевая ячейка. А 0x61 = 97
+Для выхода напишите quit.
+
+
+Если же вы хотите попробовать мои настройки, то загрузите файл eeprom_dump.hex и напишите avrdude -p m8 -c usbasp -U eeprom:w:eeprom_dump.hex
+
+//=================================================================//
+
+
+
+Eng:
+
+
+In total, the centrifuge has 9 parameters for adjustment. File 'dump_eeprom.hex' contains memory dump of my controller.
+The following values ​​are selected there:
+
+Addr 0: Percentage of "linear" acceleration: 97% in my case. That is, until the centrifuge has accelerated to 97% of the target speed, the value from "PERCRETA_FACTOR_ADDR" will be used for acceleration.
+Addr 1: The value that will be added to the PWM timer register in the middle of the speed range (the middle between bottom (200 rpm) and top (top is all that bigger than MIDDLE)). That is, how much the value of this register will be decremented or incremented when the centrifuge is accelerated to N RPM, Default (i.e. Middle), Fast(High) or Slow (low RPM).
+Each speed range has its own increment value, because the engine slows down and accelerates not perfectly linearly. You will need to select these variables practically, finding the most linear acceleration characteristic in the entire range of RPM (from zero to TOP).
+
+Addr 2, 3: the same as Addr 1.
+
+Addr4: "Correction" value. It is used EXCLUSIVELY FOR CORRECTION AND ACCELERATION AFTER "linear acceleration" (i.e. after 97% of the target(97% FOR AN EXAMPLE!))!. The first 3 "Percreta" are used when the centrifuge accelerates to N RPM (target) but "current RPM" are BELOW 97% OF THE TARGET.
+
+When the centrifuge accelerates to 97% OF the target RPM, the values ​​from PERCRETA_FACTOR_ADDR will be used to the register. Also, if for some reason the RPMs change slightly (and this "slightly" is determined by the value from Aceptable_RPM_Deviation_Addr) AFTER getting the target, then the upward or downward RPM correction will be performed by the value from this PERCRETA_FACTOR_ADDR variable. That is, this is a very "thin" RPM correction and a very "thin" acceleration, and the value should be chosen smaller.
+
+Addr5: Acceptable RPM deviation. While the deviation is LOWER than this value, the control unit will not affect the RPM in any way (neither correction nor acceleration).
+
+Addr6: Value for the arithmetic mean. How many times to sum up the raw tachometer values ​​to calculate the average number of RPMs in N seconds. An important point - the control unit ask the tachometer every second (!). But the values ​​on the display will change every N_dr_P * 1 second of time. This also applies to taking any actions regarding the RPM correction. Example: for N_dr_P = 3 the values ​​(TACHOMETER! NOT TIMER!) on the display will be updated every 3 seconds and any actions (i.e., making decisions about them) regarding the RPM correction/acceleration will also be taken every 3 seconds. Yes, I know this is a very retarded method. But with hysteresis N_dr_P = 1 it works great. I was just too lazy to clean the code and delete this function. Set N_dr_P = 1 and that's it.
+
+Addr7: Initial value in the PWM timer register.
+
+Addr8: Multiplier of the END of "MIDDLE" speed multiplied by a fixed multiplier (50). Let's say this value = 70. That is 70 * 50 = 3500.
+This means that RPM ABOVE 3500 will be considered "high", and the PERCRETA_FACTOR_INIT2_ADDR increment values ​​will be applied to them.
+Addr9: The multiplier of the END of "low" RPMs multiplied by the multiplier from Addr8. There in the example above was CurvyCutOff = 70. Let's say I want the "low" RPMs to END at 1400 rpm, which means 1400/70 = 20. Then CURVYCUTOFF_MULTIPLIER_LOW_ADDR = 20.
+
+//====================================================================//
+How to set it up? Experimentally. Or try loading my dump.
+In interactive mode using avrdude:
+avrdude -p m8 -c usbasp -t
+Let's say I want to change the value of LINEAR_PERCENT_LENGTH_ADDR to 97%
+then I tell to avrudude -  write eeprom 0 97
+An important point - the value being written is written in decimal form!
+After which you can check if everything was written correctly: read eeprom 0
+0000 61 04 0a 03 02 50 01 aa 3c 14 22 ff ff ff ff ff
+Where 61 = zero cell. And 0x61 = 97
+To exit from interactive mode, write 'quit'.
+
+If you want to try my settings, just go download the eeprom_dump.hex file and write avrdude -p m8 -c usbasp -U eeprom:w:eeprom_dump.hex
+
+//=====================================================================//
+//=====================================================================//
+//=====================================================================//
+The values ​​of my variables:
+Значения моих переменных:
+LINEAR_PERCENT_LENGH_ADDR = 97
+PERCRETA_FACTOR_INIT_ADDR = 4
+PERCRETA_FACTOR_INIT2_ADDR = 10
+PERCRETA_FACTOR_INIT3_ADDR = 3
+PERCRETA_FACTOR_ADDR = 2
+ACCEPTABLE_RPM_DEVIATION_ADDR = 80
+N_dr_P_ADDR = 1
+INIT_PWM_VALUE_ADDR = 170
+CURVYCUTOFF_MULTIPLIER_ADDR = 60
+CURVYCUTOFF_MULTIPLIER_LOW_ADDR = 20
+
+
+
+Как скомпилировать?
+How to compile?
+
+avr-gcc -Wall -Wextra -g -std=c99 -mmcu=atmega8a -Os main.c -o main.o && avr-objcopy -j .text -j .data -O ihex main.hex
+
+
+Загрузить прошивку в контроллер:
+To load a firmware to controller:
+avrdude -p m8 -c usbasp -U flash:w:firmware.hex
+
+Установить фьюз-биты:
+Set a fuse-bits:
+
+avrdude -p m8 -c usbasp -U lfuse:w:0xdf:m // for LOW fuse byte
+avrdude -p m8 -c usbasp -U hfuse:w:0xc1:m // for HIGH fuse byte
