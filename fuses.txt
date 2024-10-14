@@ -1,0 +1,2 @@
+HFUSE = 0xC1
+LFUSE = 0xDF
