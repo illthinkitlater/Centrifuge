@@ -1,5 +1,5 @@
 G Range	 -------> 3.2 - 3800G
-RPM Range  -----> 200 - 3800RPM (TOP limit DEPENDS of voltage & current on rotor (i got 7000RPM top with x4 2ml load on ~105 volts on rotor and ~9.2 volts on stator)
+RPM Range  -----> 200 - 7000RPM (TOP limit DEPENDS of voltage & current on rotor (i got 7000RPM top with x4 2ml load on ~105 volts on rotor and ~9.2 volts on stator)
 RPM Resolution -> 50-100 RPM 
 Load  ----------> x4 - x8 2ML pipes
 
