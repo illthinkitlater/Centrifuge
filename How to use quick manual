@@ -1,0 +1,19 @@
+After power on, u`ll see '0200' on display. That a minimal accessible RPM to. So...
+
+1) Select a TARGET RPM. With button +B and -B. Quick click on +b or -b makes +100 or -100 to target rpm. Long click (more than 3 secs) makes +1000 or -1000 to target rpm. If you hold +b or -b button, every a second target RPM will be increased with +1000 or decreased with -1000.
+
+2) Quicly press NSSB button. 'Status led' will light after this.
+
+3) Select a TARGET time on TARGET RPM. Quick click on +b or -b makes +1 minute or -1 minute to TARGET timer. Long click (more than 3 secs) makes + 10 minutes or -10 minutes to TARGET timer. You can also hold +b or -b and target timer will be increased with +10 or -10 minutes every a second while you holding +b or -b.
+
+4) To start centrifuge with selected Target RPM and Target TIMER just HOLD NSSB button at least for 5 seconds. When 'CLOCK LED' blinked once - unhold NSSB button.
+
+
+
+Tips:
+
+If you want to stop centrifuge while their work.... Just pull the plug out of the 220v socket :D :D :D (sorry i forgot to add stop-functional to NSSB button. Ill do it later, maybe).
+
+If you want to reset values before start (like, if you selected wrong value, for example) - just hold TRB button at least for 5 seconds. BUT!!!! You will NOT be moved to start (0200 on display) WHILE you holding this button, even after 5 seconds. Im very sorry but i forgot to add normal auto-move to start, its a bug. I`ll fix it later. Just clock in your mind 5 secs and unhold this button after 5sec, so, you`ll be moved to start after unhold this button.
+
+Timer DOES NOT deacreases while centrifuge didnt got target RPM. I.e, while rotor in acceleration to target - timer dnt deacreases. Also, if by any reason RPM`s deviated (in any direction, up and down) of target RPM - timer will paused while RPM wasnt corrected to TARGET rpm, and, after this done, timer will clock again.
